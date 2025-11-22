@@ -1,0 +1,20 @@
+[server]
+host = "[::1]"
+port = 10000
+
+[logging]
+dirs = "info"
+
+[limits]
+max_file_size = 5000000
+
+[yt_dlp]
+executable_path = "./yt-dlp/executable"
+
+[yt_toolkit]
+url = "http://worker.yt_toolkit_api:8080"
+# url = "http://127.0.0.1:8080"
+
+[yt_pot_provider]
+url = "http://worker.yt_pot_provider_api:4416"
+# url = "http://127.0.0.1:4416"
