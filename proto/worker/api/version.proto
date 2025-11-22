@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package worker.api;
+
+service VersionService {
+  rpc GetCurrentVersion(GetCurrentVersionRequest) returns (GetCurrentVersionResponse);
+}
+
+message GetCurrentVersionRequest {}
+
+message GetCurrentVersionResponse {
+  uint32 major = 1;
+  uint32 minor = 2;
+  uint32 patch = 3;
+}

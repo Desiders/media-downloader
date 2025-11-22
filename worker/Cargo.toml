@@ -1,0 +1,23 @@
+[package]
+name = "worker"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+license-file = "LICENSE"
+
+[dependencies]
+prost = { version = "0.14", features = ["derive"], default-features = false }
+tonic = { version = "0.14", features = ["router", "transport", "codegen", "tls-webpki-roots", "zstd"], default-features = false }
+tonic-prost = { version = "0.14", default-features = false }
+
+tokio = { version = "1.48", features = ["macros", "rt-multi-thread"], default-features = false }
+
+url = { version = "2.5", default-features = false }
+
+[build-dependencies]
+tonic-build = { version = "0.14", features = ["transport"], default-features = false }
+tonic-prost-build = { version = "0.14", features = ["transport"], default-features = false }
+
+[profile.dev]
+debug = 0
