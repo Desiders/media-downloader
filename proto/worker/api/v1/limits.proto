@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package worker.api.v1;
+
+service LimitsService {
+  rpc GetCurrentLimits(GetCurrentLimitsRequest) returns (GetCurrentLimitsResponse);
+}
+
+message GetCurrentLimitsRequest {}
+
+message GetCurrentLimitsResponse {
+  uint32 max_file_size = 1;
+}

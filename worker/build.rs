@@ -5,6 +5,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         &[
             "../proto/worker/test/echo.proto",
             "../proto/worker/api/version.proto",
+            "../proto/worker/api/v1/limits.proto",
         ],
         &["../proto"],
     )?;
