@@ -1,10 +1,39 @@
 use serde::Deserialize;
 use std::{
     env::{self, VarError},
-    fs, io,
+    fmt::Display,
+    fs,
     path::Path,
 };
-use thiserror::Error;
+
+#[derive(Clone, Debug)]
+pub struct Version {
+    pub major: u32,
+    pub minor: u32,
+    pub patch: u32,
+}
+
+impl Version {
+    pub fn from_env(key: &str) -> Result<Self, anyhow::Error> {
+        let version = env::var(key)?;
+        let mut parts = version.split('.');
+        let major = parts.next().expect("major unset").parse()?;
+        let minor = parts.next().expect("minor unset").parse()?;
+        let patch = parts.next().expect("patch unset").parse()?;
+
+        Ok(Self {
+            major,
+            minor,
+            patch,
+        })
+    }
+}
+
+impl Display for Version {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}.{}.{}", self.major, self.minor, self.patch)
+    }
+}
 
 #[derive(Deserialize, Clone, Debug)]
 pub struct Server {
@@ -47,19 +76,19 @@ pub struct Config {
     pub yt_pot_provider: YtPotProvider,
 }
 
-#[derive(Error, Debug)]
-pub enum ParseError {
-    #[error(transparent)]
-    IO(#[from] io::Error),
-    #[error(transparent)]
-    Toml(#[from] toml::de::Error),
+impl Config {
+    pub fn from_fs(path: impl AsRef<Path>) -> Result<Config, anyhow::Error> {
+        let raw = fs::read_to_string(path)?;
+        let cfg = toml::from_str(&raw)?;
+        Ok(cfg)
+    }
 }
 
 /// # Panics
 ///
 /// Panics if the `CONFIG_PATH` environment variable is not valid UTF-8.
 #[must_use]
-pub fn get_path() -> Box<str> {
+pub fn get_config_path() -> Box<str> {
     let path = match env::var("CONFIG_PATH") {
         Ok(val) => val,
         Err(VarError::NotPresent) => String::from("config.toml"),
@@ -68,11 +97,4 @@ pub fn get_path() -> Box<str> {
         }
     };
     path.into_boxed_str()
-}
-
-#[allow(clippy::missing_errors_doc)]
-pub fn parse_from_fs(path: impl AsRef<Path>) -> Result<Config, ParseError> {
-    let raw = fs::read_to_string(path)?;
-    let cfg = toml::from_str(&raw)?;
-    Ok(cfg)
 }
