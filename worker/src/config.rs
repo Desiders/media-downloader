@@ -21,11 +21,7 @@ impl Version {
         let minor = parts.next().expect("minor unset").parse()?;
         let patch = parts.next().expect("patch unset").parse()?;
 
-        Ok(Self {
-            major,
-            minor,
-            patch,
-        })
+        Ok(Self { major, minor, patch })
     }
 }
 
