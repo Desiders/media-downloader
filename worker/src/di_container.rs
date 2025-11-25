@@ -8,7 +8,6 @@ pub fn init(config: Config, version: Version) -> Container {
             provide(instance(config.logging)),
             provide(instance(config.limits)),
             provide(instance(config.yt_dlp)),
-            provide(instance(config.yt_toolkit)),
             provide(instance(config.yt_pot_provider)),
             provide(instance(version)),
         ]
