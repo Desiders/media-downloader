@@ -1,0 +1,88 @@
+syntax = "proto3";
+
+package worker.api.v1;
+
+message Video {
+  string id = 1;
+  string url = 2;
+  optional int64 width = 3;
+  optional int64 height = 4;
+}
+
+message VideoFormat {
+  string id = 1;
+  string url = 2;
+  optional double filesize = 3;
+  optional double filesize_approx = 4;
+  string container = 5;
+}
+
+message AudioFormat {
+  string id = 1;
+  string url = 2;
+  optional double filesize = 3;
+  optional double filesize_approx = 4;
+  string codec = 5;
+}
+
+message CombinedFormat {
+  VideoFormat video = 1;
+  AudioFormat audio = 2;
+}
+
+message Cookie {
+  string content = 1;
+}
+
+service DownloadService {
+  rpc DownloadAudio(DownloadAudioRequest) returns (stream DownloadAudioResponse);
+  rpc DownloadVideo(DownloadVideoRequest) returns (stream DownloadVideoResponse);
+  rpc DownloadThumbnail(DownloadThumbnailRequest) returns (stream DownloadThumbnailResponse);
+}
+
+message DownloadAudioRequest {
+  Video video = 1;
+  AudioFormat format = 2;
+}
+
+message DownloadVideoRequest {
+  Video video = 1;
+  CombinedFormat format = 2;
+}
+
+message DownloadThumbnailRequest {
+  string media_id = 1;
+  string service_domain = 2;
+  repeated string thumbnails = 3;
+  optional int64 width = 4;
+  optional int64 height = 5;
+}
+
+message DownloadAudioResponse {
+  oneof message {
+    FileHeader header = 1;
+    FileChunk chunk = 2;
+  }
+}
+
+message DownloadVideoResponse {
+  oneof message {
+    FileHeader header = 1;
+    FileChunk chunk = 2;
+  }
+}
+
+message DownloadThumbnailResponse {
+  oneof message {
+    FileHeader header = 1;
+    FileChunk chunk = 2;
+  }
+}
+
+message FileHeader {
+  uint64 filesize = 1;
+}
+
+message FileChunk {
+  bytes content = 1;
+}
