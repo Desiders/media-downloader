@@ -1,5 +1,6 @@
 mod aspect;
 mod errors;
+mod macros;
 
 pub mod thumbnail;
 pub mod url;
