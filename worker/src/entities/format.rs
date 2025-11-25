@@ -1,15 +1,15 @@
 use std::fmt::{self, Display, Formatter};
 
 #[derive(Debug, Clone)]
-pub struct Video<'a> {
-    pub id: &'a str,
-    pub url: &'a str,
+pub struct Video {
+    pub id: String,
+    pub url: String,
     pub filesize: Option<f64>,
     pub filesize_approx: Option<f64>,
-    pub container: &'a str,
+    pub container: String,
 }
 
-impl Video<'_> {
+impl Video {
     #[inline]
     #[must_use]
     pub fn filesize_or_approx(&self) -> Option<f64> {
@@ -19,11 +19,11 @@ impl Video<'_> {
     #[inline]
     #[must_use]
     pub const fn extension(&self) -> &str {
-        self.container
+        self.container.as_str()
     }
 }
 
-impl Display for Video<'_> {
+impl Display for Video {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(
             f,
@@ -37,15 +37,15 @@ impl Display for Video<'_> {
 }
 
 #[derive(Debug, Clone)]
-pub struct Audio<'a> {
-    pub id: &'a str,
-    pub url: &'a str,
+pub struct Audio {
+    pub id: String,
+    pub url: String,
     pub filesize: Option<f64>,
     pub filesize_approx: Option<f64>,
-    pub codec: &'a str,
+    pub codec: String,
 }
 
-impl Audio<'_> {
+impl Audio {
     #[inline]
     #[must_use]
     pub fn filesize_or_approx(&self) -> Option<f64> {
@@ -55,11 +55,11 @@ impl Audio<'_> {
     #[inline]
     #[must_use]
     pub const fn extension(&self) -> &str {
-        self.codec
+        self.codec.as_str()
     }
 }
 
-impl Display for Audio<'_> {
+impl Display for Audio {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(
             f,
@@ -72,13 +72,13 @@ impl Display for Audio<'_> {
     }
 }
 
-pub struct Combined<'a>(pub Video<'a>, pub Audio<'a>);
+pub struct Combined(pub Video, pub Audio);
 
-impl Combined<'_> {
+impl Combined {
     #[inline]
     #[must_use]
     pub const fn id(&self) -> &str {
-        self.0.id
+        self.0.id.as_str()
     }
 
     #[inline]
@@ -94,7 +94,7 @@ impl Combined<'_> {
     }
 }
 
-impl Display for Combined<'_> {
+impl Display for Combined {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "video: {}, audio: {}", self.0, self.1)
     }

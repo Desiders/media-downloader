@@ -1,14 +1,9 @@
 use std::fmt::Display;
-use url::Host;
 
 use crate::value_objects::AspectKind;
 
-pub fn get_urls_by_aspect(service_host: Option<&Host<&str>>, id: impl Display, aspect_kind: AspectKind) -> Vec<String> {
-    let Some(Host::Domain(domain)) = service_host else {
-        return vec![];
-    };
-
-    if domain.contains("youtube") || *domain == "youtu.be" {
+pub fn get_urls_by_aspect(service_domain: &str, id: impl Display, aspect_kind: AspectKind) -> Vec<String> {
+    if service_domain.contains("youtube") || service_domain == "youtu.be" {
         let fragments = match aspect_kind {
             AspectKind::Vertical => vec!["oardefault"],
             AspectKind::Sd => vec!["sddefault", "0", "hqdefault"],
