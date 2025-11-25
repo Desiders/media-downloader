@@ -53,11 +53,6 @@ pub struct YtDlp {
 }
 
 #[derive(Deserialize, Clone, Debug)]
-pub struct YtToolkit {
-    pub url: Box<str>,
-}
-
-#[derive(Deserialize, Clone, Debug)]
 pub struct YtPotProvider {
     pub url: Box<str>,
 }
@@ -68,7 +63,6 @@ pub struct Config {
     pub logging: Logging,
     pub limits: Limits,
     pub yt_dlp: YtDlp,
-    pub yt_toolkit: YtToolkit,
     pub yt_pot_provider: YtPotProvider,
 }
 
