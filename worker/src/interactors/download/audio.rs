@@ -1,10 +1,9 @@
 use std::{io, sync::Arc};
 use tempfile::TempDir;
 use tracing::{info, instrument};
-use url::Url;
 
 use crate::{
-    adapters::{ffmpeg::download_thumbnail_to_path, ytdl::download_audio_to_path},
+    adapters::ytdl::download_audio_to_path,
     config,
     entities::{Cookie, MediaInFS, Video, format},
     interactors::Interactor,
@@ -18,6 +17,8 @@ pub enum ErrorKind {
     Ytdlp(io::Error),
     #[error("Temp dir error: {0}")]
     TempDir(io::Error),
+    #[error("URL parse error: {0}")]
+    Url(#[from] url::ParseError),
 }
 
 pub struct Download {
@@ -42,85 +43,47 @@ impl Download {
     }
 }
 
-pub struct DownloadInput<'a> {
-    url: &'a Url,
-    cookie: Option<&'a Cookie>,
-    video: &'a Video,
-    format: format::Audio<'a>,
+pub struct DownloadInput {
+    video: Video,
+    format: format::Audio,
+    cookie: Option<Cookie>,
 }
 
-impl<'a> DownloadInput<'a> {
+impl DownloadInput {
     #[inline]
     #[must_use]
-    pub const fn new(url: &'a Url, cookie: Option<&'a Cookie>, video: &'a Video, format: format::Audio<'a>) -> Self {
-        Self {
-            url,
-            cookie,
-            video,
-            format,
-        }
+    pub const fn new(video: Video, format: format::Audio, cookie: Option<Cookie>) -> Self {
+        Self { video, format, cookie }
     }
 }
 
-impl Interactor<DownloadInput<'_>> for &Download {
+impl Interactor<DownloadInput> for &Download {
     type Output = MediaInFS;
     type Err = ErrorKind;
 
     #[instrument(skip_all, fields(%format))]
-    async fn execute(
-        self,
-        DownloadInput {
-            url,
-            cookie,
-            video,
-            format,
-        }: DownloadInput<'_>,
-    ) -> Result<Self::Output, Self::Err> {
+    async fn execute(self, DownloadInput { video, format, cookie }: DownloadInput) -> Result<Self::Output, Self::Err> {
         let extension = format.extension();
-        let host = url.host();
-        let thumbnail_urls = video.thumbnail_urls(host.as_ref());
         let temp_dir = TempDir::new().map_err(Self::Err::TempDir)?;
         let file_path = temp_dir.path().join(format!("{}.{}", video.id, extension));
 
-        let (download_res, thumbnail_path) = tokio::join!(
-            {
-                let url = video.original_url.clone();
-                let yt_dlp_executable_path = self.yt_dlp_cfg.executable_path.clone();
-                let yt_pot_provider_url = self.yt_pot_provider_cfg.url.clone();
-                let temp_dir_path = temp_dir.path().to_path_buf();
-                async move {
-                    download_audio_to_path(
-                        yt_dlp_executable_path,
-                        url,
-                        yt_pot_provider_url,
-                        format.id,
-                        extension,
-                        temp_dir_path,
-                        DOWNLOAD_TIMEOUT,
-                        self.limits_cfg.max_file_size,
-                        cookie,
-                    )
-                    .await
-                }
-            },
-            {
-                let temp_dir_path = temp_dir.path().to_path_buf();
-                async move {
-                    for thumbnail_url in thumbnail_urls {
-                        if let Some(thumbnail_path) = download_thumbnail_to_path(thumbnail_url, &video.id, &temp_dir_path).await {
-                            info!("Thumbnail downloaded");
-                            return Some(thumbnail_path);
-                        }
-                    }
-                    None
-                }
-            }
-        );
-        if let Err(err) = download_res {
+        if let Err(err) = download_audio_to_path(
+            &self.yt_dlp_cfg.executable_path,
+            &video.url,
+            &self.yt_pot_provider_cfg.url,
+            &format.id,
+            extension,
+            temp_dir.path(),
+            DOWNLOAD_TIMEOUT,
+            self.limits_cfg.max_file_size,
+            cookie.as_ref(),
+        )
+        .await
+        {
             return Err(Self::Err::Ytdlp(err));
         }
 
         info!("Audio downloaded");
-        Ok(Self::Output::new(file_path, thumbnail_path, temp_dir))
+        Ok(Self::Output::new(file_path, temp_dir))
     }
 }
