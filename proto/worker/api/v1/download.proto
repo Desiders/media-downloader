@@ -30,10 +30,6 @@ message CombinedFormat {
   AudioFormat audio = 2;
 }
 
-message Cookie {
-  string content = 1;
-}
-
 service DownloadService {
   rpc DownloadAudio(DownloadAudioRequest) returns (stream DownloadAudioResponse);
   rpc DownloadVideo(DownloadVideoRequest) returns (stream DownloadVideoResponse);
