@@ -1,4 +1,4 @@
-use crate::{config::BlacklistedConfig, entities::UrlWithParams};
+use crate::{config::Blacklisted, entities::UrlWithParams};
 
 use froodi::async_impl::Container;
 use std::{collections::HashMap, future::Future, str::FromStr};
@@ -130,7 +130,7 @@ pub fn url_is_blacklisted(request: &mut Request) -> impl Future<Output = bool> {
         let Some(container) = container_option else {
             return false;
         };
-        match container.get::<BlacklistedConfig>().await {
+        match container.get::<Blacklisted>().await {
             Ok(cfg) => cfg.domains.iter().map(String::as_str).collect::<Vec<_>>().contains(&domain),
             Err(err) => {
                 event!(Level::ERROR, %err);
