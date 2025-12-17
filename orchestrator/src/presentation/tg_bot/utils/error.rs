@@ -1,6 +1,6 @@
 use crate::{
     entities::ParseRangeError,
-    errors::{FormatNotFound, database::ErrorKind},
+    errors::{ErrorKind, FormatNotFound},
 };
 
 use std::{borrow::Cow, fmt::Debug, fmt::Write, iter};
