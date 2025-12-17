@@ -1,0 +1,32 @@
+[bot]
+token = "..."
+src_url = "https://github.com/.../..."
+
+[logging]
+dirs = "info,hyper=warn,reqwest=warn,tokio_util::codec=warn"
+
+[chat]
+receiver_chat_id = 123
+
+[blacklisted]
+domains = ["t.me", "2girls1cup.ca"]
+
+[database]
+user = "..."
+password = "..."
+# You can use "127.0.0.1" if the database is running on the same network.
+# If the database is running in docker, you can use the database container name as the host.
+host = "yt_orchestrator.postgres"
+# host = "127.0.0.1"
+port = 5432
+database = "api"
+
+[limits]
+max_file_size = 500000000
+
+[tg_bot_api]
+url = "http://yt_orchestrator.telegram_bot_api:8081"
+# url = "http://127.0.0.1:8081"
+# url = "https://api.telegram.org"
+api_id = "..."
+api_hash = "..."

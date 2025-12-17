@@ -1,0 +1,104 @@
+services:
+  bot:
+    container_name: yt_orchestrator.bot
+    image: desiders/yt_orchestrator:3.0.2
+    restart: "unless-stopped"
+    env_file:
+      - ".env"
+    environment:
+      - CONFIG_PATH=${CONFIG_PATH:-config.toml}
+    build:
+      context: .
+    networks:
+      - postgres.network
+      - tg_bot_api.network
+    volumes:
+      - type: bind
+        source: ./config.toml
+        target: /app/config.toml
+      - type: bind
+        source: ./yt-dlp
+        target: /app/yt-dlp
+      - type: bind
+        source: ./cookies
+        target: /app/cookies 
+    depends_on:
+      postgres:
+        condition: service_healthy
+      tg_bot_api:
+        condition: service_started
+    mem_limit: $BOT_MEM_LIMIT
+    profiles:
+      - default
+
+  postgres:
+    container_name: yt_orchestrator.postgres
+    image: "postgres:18-alpine"
+    hostname: yt_orchestrator.postgres
+    restart: "unless-stopped"
+    expose:
+      - "5432"
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    networks:
+      - postgres.network
+    environment:
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+      POSTGRES_USER: ${POSTGRES_USER:-$USER}
+      POSTGRES_DB: ${POSTGRES_DB:-$USER}
+    volumes:
+      - postgres.data:/var/lib/postgresql/users:rw
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 60s
+      retries: 5
+      start_period: 10s
+    profiles:
+      - default
+      - migration
+      - dev
+
+  tg_bot_api:
+    container_name: yt_orchestrator.tg_bot_api
+    image: aiogram/telegram-bot-api:latest
+    restart: "unless-stopped"
+    environment:
+      TELEGRAM_API_ID: $TELEGRAM_API_ID
+      TELEGRAM_API_HASH: $TELEGRAM_API_HASH
+      TELEGRAM_LOCAL: 1
+    volumes:
+      - tg_bot_api.data:/var/lib/telegram-bot-api
+    networks:
+      - tg_bot_api.network
+    expose:
+      - "8081"
+    ports:
+      - "127.0.0.1:${TG_BOT_API_PORT:-8081}:8081"
+    profiles:
+      - default
+      - dev
+
+  migration:
+    container_name: yt_orchestrator.migration
+    image: desiders/yt_orchestrator.migration:1.1.0
+    restart: "no"
+    environment:
+      DATABASE_URL: $DATABASE_URL
+    build:
+      context: ./migration
+    networks:
+      - postgres.network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles:
+      - migration
+
+volumes:
+  postgres.data: {}
+  tg_bot_api.data: {}
+
+networks:
+  postgres.network: {}
+  tg_bot_api.network: {}
